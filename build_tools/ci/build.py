@@ -55,6 +55,25 @@ _KOKORO_ARTIFACTS_DIR = os.environ.get(
 )
 
 
+def retry(
+    args: List[str], delay_seconds: int = 15, retries: int = 3
+) -> List[str]:
+  # Possibly a slight abuse of `parallel`.
+  # `--nonall` means that we don't have to pass any extra args to the command,
+  # such that we can omit the usual `::: $ARG1 $ARG2` usually required.
+  return [
+      "parallel",
+      "--ungroup",
+      "--retries",
+      str(retries),
+      "--delay",
+      str(delay_seconds),
+      "--nonall",
+      "--",
+      *args,
+  ]
+
+
 def sh(args, check=True, **kwargs):
   logging.info("Starting process: %s", " ".join(args))
   return subprocess.run(args, check=check, **kwargs)
@@ -147,15 +166,12 @@ class Build:
 
     # pyformat:disable
 
-    if self.type_ == BuildType.CPU_ARM64:
+    if self.type_ == BuildType.CPU_ARM64 and using_docker:
       # We would need to install parallel, but `apt` hangs regularly on Kokoro
       # VMs due to yaqs/eng/q/4506961933928235008
       cmds.append(["docker", "pull", self.image_url])
     elif using_docker:
-      # This is a slightly odd use of parallel, we aren't doing anything besides
-      # retrying after 15 seconds up to 3 times if `docker pull` fails.
-      cmds.append(["parallel", "--ungroup", "--retries", "3", "--delay", "15",
-                   "docker", "pull", ":::", self.image_url])
+      cmds.append(retry(["docker", "pull", self.image_url]))
 
     container_name = "xla_ci"
     _, repo_name = self.repo.split("/")
@@ -172,6 +188,10 @@ class Build:
     # Prepend `docker exec <container_name>` iff we are using docker.
     maybe_docker_exec = (
         ["docker", "exec", container_name] if using_docker else []
+    )
+    cmds.append(maybe_docker_exec + ["parallel", "--version"])
+    cmds.append(
+        maybe_docker_exec + retry(["bazel", "fetch", *self.target_patterns])
     )
     cmds.append(maybe_docker_exec + self.bazel_test_command())
     cmds.append(
