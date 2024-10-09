@@ -651,12 +651,15 @@ cc_library(
         "//xla/stream_executor:event",
         "//xla/stream_executor/gpu:context",
         "//xla/stream_executor/gpu:gpu_driver_header",
-        "//xla/stream_executor/gpu:gpu_event",
         "//xla/stream_executor/gpu:gpu_types_header",
         "//xla/stream_executor/gpu:scoped_activate_context",
         "@com_google_absl//absl/base",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
         "@local_config_cuda//cuda:cuda_headers",
+        "@tsl//tsl/platform:errors",
+        "@tsl//tsl/platform:statusor",
     ],
 )
 
@@ -968,7 +971,6 @@ cc_library(
     name = "cuda_executor",
     srcs = [
         "cuda_executor.cc",
-        "delay_kernel.h",
     ],
     hdrs = [
         "cuda_executor.h",
@@ -988,7 +990,6 @@ cc_library(
         ":cuda_stream",
         ":cuda_timer",
         ":cuda_version_parser",
-        ":delay_kernel_cuda",
         "//xla/stream_executor",
         "//xla/stream_executor:blas",
         "//xla/stream_executor:command_buffer",
@@ -1006,10 +1007,8 @@ cc_library(
         "//xla/stream_executor/gpu:context",
         "//xla/stream_executor/gpu:gpu_command_buffer",
         "//xla/stream_executor/gpu:gpu_driver_header",
-        "//xla/stream_executor/gpu:gpu_event_header",
         "//xla/stream_executor/gpu:gpu_executor_header",
         "//xla/stream_executor/gpu:gpu_kernel_header",
-        "//xla/stream_executor/gpu:gpu_semaphore",
         "//xla/stream_executor/gpu:gpu_stream_header",
         "//xla/stream_executor/gpu:gpu_types_header",
         "//xla/stream_executor/gpu:read_numa_node",
@@ -1169,7 +1168,6 @@ cc_library(
         "//xla/stream_executor:platform",
         "//xla/stream_executor:stream",
         "//xla/stream_executor/gpu:context",
-        "//xla/stream_executor/gpu:gpu_event",
         "//xla/stream_executor/gpu:gpu_executor_header",
         "//xla/stream_executor/gpu:gpu_stream",
         "//xla/stream_executor/gpu:scoped_activate_context",
@@ -1184,17 +1182,22 @@ cc_library(
 
 cc_library(
     name = "cuda_timer",
-    srcs = ["cuda_timer.cc"],
+    srcs = [
+        "cuda_timer.cc",
+        "delay_kernel.h",
+    ],
     hdrs = ["cuda_timer.h"],
     tags = [
         "cuda-only",
         "gpu",
     ],
     deps = [
+        ":cuda_event",
         ":cuda_status",
+        ":delay_kernel_cuda",
         "//xla/stream_executor:event_based_timer",
+        "//xla/stream_executor:stream",
         "//xla/stream_executor/gpu:context",
-        "//xla/stream_executor/gpu:gpu_event",
         "//xla/stream_executor/gpu:gpu_semaphore",
         "//xla/stream_executor/gpu:gpu_stream",
         "//xla/stream_executor/gpu:scoped_activate_context",
