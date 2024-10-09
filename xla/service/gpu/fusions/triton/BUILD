@@ -291,6 +291,7 @@ cc_library(
     hdrs = ["passes.h"],
     deps = [
         ":passes_inc_gen",
+        ":xla_triton_ops",
         "@llvm-project//llvm:Support",
         "@llvm-project//mlir:ArithDialect",
         "@llvm-project//mlir:GPUCommonTransforms",
@@ -334,28 +335,28 @@ gentbl_cc_library(
         (
             [
                 "-gen-op-decls",
-                "-dialect=xla_triton",
+                "-dialect=xla_triton_ext",
             ],
             "xla_triton_ops.h.inc",
         ),
         (
             [
                 "-gen-op-defs",
-                "-dialect=xla_triton",
+                "-dialect=xla_triton_ext",
             ],
             "xla_triton_ops.cc.inc",
         ),
         (
             [
                 "-gen-dialect-decls",
-                "-dialect=xla_triton",
+                "-dialect=xla_triton_ext",
             ],
             "xla_triton_dialect.h.inc",
         ),
         (
             [
                 "-gen-dialect-defs",
-                "-dialect=xla_triton",
+                "-dialect=xla_triton_ext",
             ],
             "xla_triton_dialect.cc.inc",
         ),
