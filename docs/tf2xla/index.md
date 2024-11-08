@@ -8,7 +8,7 @@ changes.
 
 When a TensorFlow program is run, all of the operations are executed
 individually by the TensorFlow executor. Each TensorFlow operation has a
-precompiled GPU kernel implementation that the executor dispatches to.
+precompiled GPU/CPU kernel implementation that the executor dispatches to.
 
 XLA provides an alternative mode of running models: it compiles the TensorFlow
 graph into a sequence of computation kernels generated specifically for the
@@ -24,13 +24,14 @@ def model_fn(x, y, z):
 Run without XLA, the graph launches three kernels: one for the multiplication,
 one for the addition and one for the reduction. However, XLA can optimize the
 graph so that it computes the result in a single kernel launch. It does this by
-"fusing" the addition, multiplication and reduction into a single GPU kernel.
+"fusing" the addition, multiplication and reduction into a single GPU/CPU kernel.
 Moreover, this fused operation does not write out the intermediate values
 produced by `y*z` and `x+y*z` to memory; instead it "streams" the results of
 these intermediate computations directly to their users while keeping them
-entirely in GPU registers. Fusion is XLA's single most important optimization.
-Memory bandwidth is typically the scarcest resource on hardware accelerators, so
-removing memory operations is one of the best ways to improve performance.
+entirely in GPU registers or CPU caches. Fusion is XLA's single most important 
+optimization. Memory bandwidth is typically the scarcest resource on hardware 
+accelerators, so removing memory operations is one of the best ways to improve 
+performance.
 
 ## Enable XLA for TensorFlow models
 

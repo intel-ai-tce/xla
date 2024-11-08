@@ -29,7 +29,7 @@ implementation. For example, the usual invocation to run an input file
 ```
 $ run_hlo_module --platform=CUDA --reference_platform=Interpreter computation.hlo
 ```
-
+To run on CPU instead, replace platform with "CPU".  
 As with all the tools, `--help` can be used to obtain the full list of options.
 
 ## Running HLO snippets with SPMD support: `multihost_hlo_runner`
@@ -66,6 +66,7 @@ hlo
 llvm
 ptx
 ```
+For CPU platform, llvm and hlo stages are supported.   
 
 After selecting a stage, the user can write the result of the conversion for a
 given platform to a given stream:
